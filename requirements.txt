@@ -3,9 +3,9 @@ opencv-python
 numpy
 pandas
 seaborn
-
-albumentations
 pytesseract
+albumentations
+easyocr
 scikit-image
 pillow
 timm
