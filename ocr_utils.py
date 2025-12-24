@@ -20,10 +20,16 @@ except ImportError:
 
 try:
     import pytesseract
-    TESSERACT_AVAILABLE = True
+    # Test if Tesseract is actually installed by checking if pytesseract can find it
+    try:
+        pytesseract.get_tesseract_version()
+        TESSERACT_AVAILABLE = True
+    except Exception:
+        TESSERACT_AVAILABLE = False
+        print("Warning: Tesseract executable not found. Using EasyOCR only.")
 except ImportError:
     TESSERACT_AVAILABLE = False
-    print("Warning: Tesseract not available. Install with: pip install pytesseract")
+    print("Warning: pytesseract not available. Using EasyOCR only.")
 
 
 def extract_text_easyocr(image: np.ndarray) -> str:
@@ -51,12 +57,17 @@ def extract_text(image: np.ndarray, method: str = 'auto') -> str:
         if EASYOCR_AVAILABLE:
             return extract_text_easyocr(image)
         elif TESSERACT_AVAILABLE:
-            return extract_text_tesseract(image)
+            try:
+                return extract_text_tesseract(image)
+            except Exception as e:
+                raise RuntimeError(f"Tesseract failed: {e}. Please ensure Tesseract is installed.")
         else:
-            raise RuntimeError("No OCR library available. Install easyocr or pytesseract")
+            raise RuntimeError("No OCR library available. Install easyocr or ensure Tesseract is installed.")
     elif method == 'easyocr':
         return extract_text_easyocr(image)
     elif method == 'tesseract':
+        if not TESSERACT_AVAILABLE:
+            raise RuntimeError("Tesseract not available. Use EasyOCR or install Tesseract.")
         return extract_text_tesseract(image)
     else:
         raise ValueError(f"Unknown OCR method: {method}")
